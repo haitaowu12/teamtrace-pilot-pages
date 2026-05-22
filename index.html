@@ -1,0 +1,564 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="TeamTrace Pilot: evidence-first team intelligence for Canadian rail and transit pursuits."
+    />
+    <title>TeamTrace Pilot</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --ink: #f7f3e8;
+        --muted: #b8c1bb;
+        --rail: #d9fe52;
+        --signal: #50d6c6;
+        --paper: #101412;
+        --line: rgba(247, 243, 232, 0.18);
+        --panel: rgba(10, 15, 13, 0.72);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+        background: var(--paper);
+        color: var(--ink);
+        font-family:
+          Inter,
+          ui-sans-serif,
+          system-ui,
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          sans-serif;
+        letter-spacing: 0;
+      }
+
+      a {
+        color: inherit;
+      }
+
+      .shell {
+        min-height: 100svh;
+        overflow: hidden;
+      }
+
+      .hero {
+        position: relative;
+        min-height: 92svh;
+        display: grid;
+        align-items: center;
+        padding: 28px clamp(20px, 5vw, 72px);
+        isolation: isolate;
+      }
+
+      .hero::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: -2;
+        background:
+          linear-gradient(rgba(247, 243, 232, 0.035) 1px, transparent 1px),
+          linear-gradient(
+            90deg,
+            rgba(247, 243, 232, 0.035) 1px,
+            transparent 1px
+          ),
+          #101412;
+        background-size: 44px 44px;
+      }
+
+      .hero::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: -1;
+        background:
+          linear-gradient(90deg, rgba(16, 20, 18, 0.2), rgba(16, 20, 18, 0.9)),
+          linear-gradient(180deg, rgba(16, 20, 18, 0), #101412 92%);
+      }
+
+      .topbar {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 18px;
+        padding: 20px clamp(20px, 5vw, 72px);
+        color: var(--muted);
+        font-size: 13px;
+        text-transform: uppercase;
+      }
+
+      .brand {
+        color: var(--ink);
+        font-weight: 760;
+      }
+
+      .hero-content {
+        width: min(660px, 100%);
+        padding-top: 68px;
+      }
+
+      .eyebrow {
+        color: var(--rail);
+        font-size: 13px;
+        font-weight: 700;
+        text-transform: uppercase;
+      }
+
+      h1 {
+        margin: 18px 0 0;
+        max-width: 11ch;
+        font-size: clamp(56px, 11vw, 148px);
+        line-height: 0.86;
+        letter-spacing: 0;
+      }
+
+      .lead {
+        max-width: 570px;
+        margin: 26px 0 0;
+        color: var(--muted);
+        font-size: clamp(18px, 2.2vw, 26px);
+        line-height: 1.35;
+      }
+
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-top: 34px;
+      }
+
+      .button {
+        display: inline-flex;
+        min-height: 44px;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid var(--line);
+        padding: 0 18px;
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: 700;
+      }
+
+      .button.primary {
+        border-color: var(--rail);
+        background: var(--rail);
+        color: #11140f;
+      }
+
+      .map {
+        position: absolute;
+        right: clamp(-260px, -8vw, 24px);
+        bottom: clamp(40px, 10vw, 112px);
+        width: min(780px, 62vw);
+        aspect-ratio: 1.24;
+        opacity: 0.96;
+      }
+
+      .route {
+        position: absolute;
+        height: 3px;
+        transform-origin: left center;
+        background: linear-gradient(90deg, var(--signal), var(--rail));
+        box-shadow: 0 0 22px rgba(217, 254, 82, 0.32);
+      }
+
+      .route.one {
+        left: 9%;
+        top: 46%;
+        width: 68%;
+        transform: rotate(-11deg);
+        animation: pulse 3.8s ease-in-out infinite;
+      }
+
+      .route.two {
+        left: 24%;
+        top: 62%;
+        width: 54%;
+        transform: rotate(17deg);
+        animation: pulse 4.4s ease-in-out infinite 0.5s;
+      }
+
+      .node {
+        position: absolute;
+        width: 18px;
+        height: 18px;
+        border: 2px solid var(--rail);
+        background: #101412;
+        box-shadow: 0 0 0 8px rgba(217, 254, 82, 0.08);
+      }
+
+      .node::after {
+        content: attr(data-label);
+        position: absolute;
+        left: 24px;
+        top: -8px;
+        white-space: nowrap;
+        color: var(--ink);
+        font-size: 12px;
+        font-weight: 700;
+      }
+
+      .node.harbor {
+        left: 8%;
+        top: 44%;
+      }
+
+      .node.northstar {
+        left: 73%;
+        top: 31%;
+      }
+
+      .node.riverbend {
+        left: 75%;
+        top: 72%;
+      }
+
+      .movement {
+        position: absolute;
+        left: 22%;
+        top: 18%;
+        max-width: 330px;
+        border-left: 2px solid var(--rail);
+        background: var(--panel);
+        padding: 18px 20px;
+        backdrop-filter: blur(16px);
+      }
+
+      .movement strong {
+        display: block;
+        margin-bottom: 8px;
+        color: var(--rail);
+        font-size: 13px;
+        text-transform: uppercase;
+      }
+
+      .movement span {
+        color: var(--muted);
+        font-size: 15px;
+        line-height: 1.5;
+      }
+
+      main {
+        border-top: 1px solid var(--line);
+      }
+
+      section {
+        padding: 86px clamp(20px, 5vw, 72px);
+        border-bottom: 1px solid var(--line);
+      }
+
+      .section-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 0.82fr) minmax(0, 1.18fr);
+        gap: clamp(32px, 7vw, 96px);
+        align-items: start;
+      }
+
+      h2 {
+        margin: 0;
+        font-size: clamp(34px, 5vw, 74px);
+        line-height: 0.98;
+        letter-spacing: 0;
+      }
+
+      .section-copy {
+        margin: 16px 0 0;
+        color: var(--muted);
+        font-size: 18px;
+        line-height: 1.55;
+      }
+
+      .metrics {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        border-top: 1px solid var(--line);
+      }
+
+      .metric {
+        min-height: 180px;
+        border-right: 1px solid var(--line);
+        padding: 26px;
+      }
+
+      .metric:last-child {
+        border-right: 0;
+      }
+
+      .metric b {
+        display: block;
+        color: var(--rail);
+        font-size: clamp(36px, 6vw, 76px);
+        line-height: 1;
+      }
+
+      .metric span {
+        display: block;
+        margin-top: 14px;
+        color: var(--muted);
+        font-size: 15px;
+        line-height: 1.45;
+      }
+
+      .signal-list {
+        display: grid;
+        gap: 18px;
+      }
+
+      .signal {
+        display: grid;
+        grid-template-columns: 150px 1fr;
+        gap: 18px;
+        padding-bottom: 18px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .signal:last-child {
+        border-bottom: 0;
+      }
+
+      .signal b {
+        color: var(--rail);
+        font-size: 13px;
+        text-transform: uppercase;
+      }
+
+      .signal p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 17px;
+        line-height: 1.5;
+      }
+
+      footer {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 28px clamp(20px, 5vw, 72px);
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 0.52;
+        }
+        50% {
+          opacity: 1;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          animation-duration: 0.01ms !important;
+          animation-iteration-count: 1 !important;
+          scroll-behavior: auto !important;
+        }
+      }
+
+      @media (max-width: 860px) {
+        .hero {
+          min-height: 94svh;
+          align-items: end;
+          padding-bottom: 64px;
+        }
+
+        .topbar {
+          align-items: flex-start;
+          text-transform: none;
+        }
+
+        .map {
+          top: 84px;
+          right: -220px;
+          bottom: auto;
+          width: 720px;
+          opacity: 0.46;
+        }
+
+        .movement {
+          display: none;
+        }
+
+        .section-grid,
+        .metrics {
+          grid-template-columns: 1fr;
+        }
+
+        .metric {
+          border-right: 0;
+          border-bottom: 1px solid var(--line);
+        }
+
+        .metric:last-child {
+          border-bottom: 0;
+        }
+
+        .signal {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <header class="hero">
+        <div class="topbar">
+          <div class="brand">TeamTrace Pilot</div>
+          <div>GitHub Pages prototype</div>
+        </div>
+
+        <div class="hero-content">
+          <div class="eyebrow">
+            Canadian rail and transit pursuit intelligence
+          </div>
+          <h1>TeamTrace Pilot</h1>
+          <p class="lead">
+            Evidence-first bid-team intelligence that tracks people, firms,
+            projects, source documents, and key resource movement across
+            delivery teams.
+          </p>
+          <div class="actions">
+            <a class="button primary" href="#prototype-scope"
+              >View prototype scope</a
+            >
+            <a class="button" href="#runbook">Run full app locally</a>
+          </div>
+        </div>
+
+        <div class="map" aria-hidden="true">
+          <div class="route one"></div>
+          <div class="route two"></div>
+          <div class="node harbor" data-label="Harborline"></div>
+          <div class="node northstar" data-label="Northstar"></div>
+          <div class="node riverbend" data-label="Riverbend"></div>
+          <div class="movement">
+            <strong>Movement signal</strong>
+            <span>
+              Maya Chen: Harborline to Northstar. Two evidence trails. Medium
+              confidence. Linked project path.
+            </span>
+          </div>
+        </div>
+      </header>
+
+      <main>
+        <section id="prototype-scope">
+          <div class="section-grid">
+            <div>
+              <h2>Static front door. Server app behind it.</h2>
+              <p class="section-copy">
+                GitHub Pages hosts this public landing page. The working
+                TeamTrace app remains a Next.js runtime with auth,
+                local/Supabase persistence, API routes, and Playwright-verified
+                workflows.
+              </p>
+            </div>
+            <div class="signal-list">
+              <div class="signal">
+                <b>Resource movement</b>
+                <p>
+                  Firm-to-firm movement map links people, origin and destination
+                  organizations, project paths, and source evidence.
+                </p>
+              </div>
+              <div class="signal">
+                <b>Evidence control</b>
+                <p>
+                  Normal surfaces filter private and suppressed records. Write
+                  and settings surfaces are role-gated.
+                </p>
+              </div>
+              <div class="signal">
+                <b>Seed base</b>
+                <p>
+                  Demo data covers Canadian rail and transit owners,
+                  consultants, projects, roles, sources, evidence, reports, and
+                  review candidates.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section>
+          <div class="metrics">
+            <div class="metric">
+              <b>14</b>
+              <span>Browser workflows currently passing in the E2E suite.</span>
+            </div>
+            <div class="metric">
+              <b>98</b>
+              <span
+                >Unit and route tests validating data, privacy, and APIs.</span
+              >
+            </div>
+            <div class="metric">
+              <b>0</b>
+              <span>
+                Known public profile, broad crawling, AI extraction, or vector
+                search features enabled by default.
+              </span>
+            </div>
+          </div>
+        </section>
+
+        <section id="runbook">
+          <div class="section-grid">
+            <div>
+              <h2>Open the working pilot.</h2>
+              <p class="section-copy">
+                Clone the repo, install dependencies, start the Next.js app, and
+                use the demo role selector. Hosted production still needs
+                Supabase environment variables and deployment checks.
+              </p>
+            </div>
+            <div class="signal-list">
+              <div class="signal">
+                <b>Local</b>
+                <p><code>pnpm install</code> then <code>pnpm dev</code>.</p>
+              </div>
+              <div class="signal">
+                <b>Verify</b>
+                <p>
+                  Run format, lint, typecheck, unit tests, build, and Playwright
+                  E2E before sharing a hosted app.
+                </p>
+              </div>
+              <div class="signal">
+                <b>Hosted</b>
+                <p>
+                  Use Supabase-backed production runtime. GitHub Pages is only
+                  this static first-look page.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <footer>
+        <span>TeamTrace Pilot</span>
+        <span>Evidence-first team intelligence prototype</span>
+      </footer>
+    </div>
+  </body>
+</html>
